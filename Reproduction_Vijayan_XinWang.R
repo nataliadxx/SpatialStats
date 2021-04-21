@@ -1,6 +1,7 @@
 library(sp)
 library(rgdal)
 library(spdep)
+library(spatialreg)
 library(tidyverse)
 library(ggplot2)
 library(mapview)
@@ -34,14 +35,12 @@ lahex.df <- cbind(lahex.df, fid = LAhex$fid, area = LAhex$areasqkm,
                   westside = LAhex$Westside)
 lahex.df <- lahex.df %>%
   mutate(pop.dens = pop.tot/10) %>% # calculate population density
-  mutate(hh.dens = hh_tot) %>% # calculate household density
+  mutate(hh.dens = pop.tot/hh_tot) %>% # calculate household density
   mutate(prt = 100*crt/trt) # calculate crude positivity rates
 write.csv(lahex.df, "variables.csv", row.names = F) 
 LAhex$prt <- lahex.df$prt # add the calculated field to the shp file
 
 # Check if the data ranges align with the results presented in the paper
-summary(lahex.df$adjtrt)
-summary(lahex.df$adjcrt)
 summary(lahex.df$prt)
 # the descriptive characteristics match Fig.1 top row
 
@@ -81,9 +80,8 @@ data.sum <- lahex.df %>%
             mean_bachelor = mean(bachelor), sd_bachelor = sd(bachelor),
             mean_pop.dens = mean(pop.dens), sd_pop.dens = sd(pop.dens),
             mean_hh.dens = mean(hh.dens), sd_hh.dens = sd(hh.dens))
-write.csv(data.sum, "Table1_datasummary.csv", row.names = F)
+write.csv(t(data.sum), "Table1_datasummary.csv")
 # not identical with Table 1, either rounding positivity rate or not
-# household density?
 # correlation analysis?
 
 # Geostatistical analysis, LISA ----------------------------------------------------
